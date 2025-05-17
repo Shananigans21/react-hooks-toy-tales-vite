@@ -1,25 +1,57 @@
-import React, { useState } from "react";
-
-import Header from "./Header";
+// src/App.jsx
+import React, { useEffect, useState } from "react";
+import ToyCard from "./ToyCard";
 import ToyForm from "./ToyForm";
-import ToyContainer from "./ToyContainer";
 
 function App() {
+  const [toys, setToys] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  function handleClick() {
-    setShowForm((showForm) => !showForm);
+  useEffect(() => {
+    fetch("http://localhost:3000/toys")
+      .then((r) => r.json())
+      .then(setToys);
+  }, []);
+
+  function handleAddToy(newToy) {
+    setToys([...toys, newToy]);
+  }
+
+  function handleUpdateToy(updatedToy) {
+    const updatedToys = toys.map((toy) =>
+      toy.id === updatedToy.id ? updatedToy : toy
+    );
+    setToys(updatedToys);
+  }
+
+  function handleDeleteToy(id) {
+    const updatedToys = toys.filter((toy) => toy.id !== id);
+    setToys(updatedToys);
   }
 
   return (
-    <>
-      <Header />
-      {showForm ? <ToyForm /> : null}
-      <div className="buttonContainer">
-        <button onClick={handleClick}>Add a Toy</button>
+    <div>
+      <div id="toy-header">
+        <img
+          alt="toy header"
+          src="https://fontmeme.com/permalink/180719/67429e6afec53d21d64643101c43f029.png"
+        />
       </div>
-      <ToyContainer />
-    </>
+      <div className="buttonContainer">
+        <button onClick={() => setShowForm((prev) => !prev)}>Add a Toy</button>
+      </div>
+      {showForm && <ToyForm onAddToy={handleAddToy} />}
+      <div id="toy-collection">
+        {toys.map((toy) => (
+          <ToyCard
+            key={toy.id}
+            toy={toy}
+            onLike={handleUpdateToy}
+            onDelete={handleDeleteToy}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
